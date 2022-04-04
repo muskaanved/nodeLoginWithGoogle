@@ -1,7 +1,8 @@
+// to get all messages 
 const {google} = require('googleapis');
 const gmail = google.gmail('v1');
 
- export default async function main() {
+async function main() {
   const auth = new google.auth.GoogleAuth({
     // Scopes can be specified either as an array or as a single, space-delimited string.
     scopes: [
