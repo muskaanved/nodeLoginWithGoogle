@@ -1,0 +1,27 @@
+{
+  "name": "lophils-inc-it",
+  "version": "1.0.0",
+  "description": "**Edit a file, create a new file, and clone from Bitbucket in under 2 minutes**",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev" :"nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://MangoAnkita@bitbucket.org/mangoankita/lophils-inc-it.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://bitbucket.org/mangoankita/lophils-inc-it/issues"
+  },
+  "homepage": "https://bitbucket.org/mangoankita/lophils-inc-it#readme",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "express": "^4.17.3",
+    "nodemon": "^2.0.15"
+  }
+}
