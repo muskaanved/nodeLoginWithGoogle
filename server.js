@@ -13,7 +13,7 @@ app.use(session({
     cookie: { maxAge: 60000 }
   }));
 
-var port = process.env.PORT || 3000
+var port = process.env.PORT || 3001
 
 app.get('/',(req,res)=>{
     res.status(200).send("Working.......")
@@ -31,6 +31,7 @@ app.listen(port,()=>{
 const passport = require('passport');
 var userProfile;
 var token ;
+var message ;
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -60,7 +61,7 @@ const GOOGLE_CLIENT_SECRET = process.env.CLIENT_SECRET;
 passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/callback"
+    callbackURL: "http://94.237.3.78:3001/auth/google/callback"
   },
   function(accessToken, refreshToken, profile, done) {
       token = accessToken
@@ -73,19 +74,33 @@ passport.use(new GoogleStrategy({
   
 
  app.get('/auth/google', 
-  passport.authenticate('google', { scope : ['profile', 'email'] }));
+  passport.authenticate('google', { scope : ['profile', 'email','https://mail.google.com/',
+  
+] }));
  
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/error' }),
   function(req, res) {
     // Successful authentication, redirect success.
-   const email = userProfile._json.email
-   console.log("email ====",email)
-    const data =  gmailService.readLabels(token)
-    console.log("data====",data)
-    res.redirect('/success');
+  //    const email = userProfile._json.email
+  // gmailService.readInboxInfo(email,token).then(message=>{
+  //   res.status(200).send(message)
+  // });
+
+   
+     res.redirect('/success');
+    
     
   });
+  
+
+app.get('/inbox', (req,res)=>{
+  const email = userProfile._json.email
+  gmailService.readInboxInfo(email,token).then(message=>{
+    res.status(200).send(message)
+  });
+})
+
   app.get('/logout', function(req, res) {
     req.session.destroy(null);
     res.clearCookie(this.cookie, { path: '/' });
