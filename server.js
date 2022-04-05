@@ -6,6 +6,7 @@ const {google} = require('googleapis');
 const gmailService = require('./services/GmailApi')
 
 var app = express();
+app.use(cors())
 app.use(session({
     resave: false,
     saveUninitialized: true,
@@ -87,18 +88,25 @@ app.get('/auth/google/callback',
   //   res.status(200).send(message)
   // });
 
-   
-     res.redirect('/success');
+   res.status(200).send({user: userProfile,token :token
+   })
+    //  res.redirect('/success');
     
     
   });
   
 
 app.get('/inbox', (req,res)=>{
-  const email = userProfile._json.email
-  gmailService.readInboxInfo(email,token).then(message=>{
-    res.status(200).send(message)
-  });
+  var reqToken = req.headers.token
+  if(!reqToken){
+    res.status(400).send({message:'please provide token'})
+  }else{
+    const email = userProfile._json.email
+    gmailService.readInboxInfo(email,token).then(message=>{
+      res.status(200).send(message)
+    });
+  }
+ 
 })
 
   app.get('/logout', function(req, res) {
