@@ -1,12 +1,16 @@
 var express =  require('express');
-var cors = require('cors')
+var cors = require('cors');
 require('dotenv').config()
 const session = require('express-session');
 const {google} = require('googleapis');
 const gmailService = require('./services/GmailApi')
 
+const passport = require('passport');
+const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+const refresh = require('passport-oauth2-refresh')
+
 var app = express();
-app.use(cors());
+app.use(cors())
 app.use(session({
     resave: false,
     saveUninitialized: true,
@@ -29,10 +33,10 @@ app.listen(port,()=>{
 
 
 /*  PASSPORT SETUP  */
-const passport = require('passport');
+
 var userProfile;
 var token ;
-var message ;
+var refreshToken ;
 
 app.use(passport.initialize());
 app.use(passport.session());
@@ -51,57 +55,59 @@ passport.deserializeUser(function(obj, cb) {
 });
 
 
-
-
-
 /*  Google AUTH  */
  
-const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
+
 const GOOGLE_CLIENT_ID = process.env.CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.CLIENT_SECRET;
-passport.use(new GoogleStrategy({
-    clientID: GOOGLE_CLIENT_ID,
-    clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: "/auth/google/callback"
-  },
-  function(accessToken, refreshToken, profile, done) {
-      token = accessToken
-      userProfile=profile;
-     
-      return done(null, userProfile , token);
-  },
 
+var strategy = new GoogleStrategy({
+  clientID: GOOGLE_CLIENT_ID,
+  clientSecret: GOOGLE_CLIENT_SECRET,
+  callbackURL: "/auth/google/callback"
+},
+function(accessToken, refresh_token, profile, done) {
+    token = accessToken
+    userProfile=profile;
+    refreshToken=refresh_token
+    return done(null, userProfile , token,refreshToken);
+},
+
+);
+passport.use(strategy)
+refresh.use(strategy);
+
+ app.get('/auth/google',passport.authenticate('google',
+  { scope : ['profile', 'email','https://mail.google.com/',],
+   accessType: 'offline',
+   prompt: 'consent',
+
+}
+  
+ 
 ));
-  
-
- app.get('/auth/google', 
-  passport.authenticate('google', { scope : ['profile', 'email','https://mail.google.com/',
-  
-] }));
  
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/error' }),
   function(req, res) {
-    // Successful authentication, redirect success.
-  //    const email = userProfile._json.email
-  // gmailService.readInboxInfo(email,token).then(message=>{
-  //   res.status(200).send(message)
-  // });
-
-  //  res.status(200).send( {user: userProfile,token :token
-  //  });
-
-     res.redirect(`http://localhost:3000/GoogleLogin?token=${token}`);
-    // 
+   console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken })
+   res.redirect(`http://localhost:3000/GoogleLogin?token=${token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
+    
     
   });
-  
 
 app.get('/inbox', (req,res)=>{
-  const email = userProfile._json.email
-  gmailService.readInboxInfo(email,token).then(message=>{
-    res.status(200).send({message:message})
-  });
+  var numberOfEmail = req.headers.numberofemail
+  var reqToken = req.headers.token
+  var email = req.headers.user
+  if(!reqToken){
+    res.status(400).send({message:'please provide token'})
+  }else{
+      gmailService.readInboxInfo(email,token,numberOfEmail).then(message=>{
+      res.status(200).send(message)
+    });
+  }
+ 
 })
 
   app.get('/logout', function(req, res) {
@@ -109,6 +115,5 @@ app.get('/inbox', (req,res)=>{
     res.clearCookie(this.cookie, { path: '/' });
     res.redirect('/');
 });
-
 
 
