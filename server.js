@@ -6,6 +6,7 @@ const {google} = require('googleapis');
 const gmailService = require('./services/GmailApi')
 
 var app = express();
+app.use(cors());
 app.use(session({
     resave: false,
     saveUninitialized: true,
@@ -61,7 +62,7 @@ const GOOGLE_CLIENT_SECRET = process.env.CLIENT_SECRET;
 passport.use(new GoogleStrategy({
     clientID: GOOGLE_CLIENT_ID,
     clientSecret: GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:3001/auth/google/callback"
+    callbackURL: "/auth/google/callback"
   },
   function(accessToken, refreshToken, profile, done) {
       token = accessToken
@@ -87,9 +88,11 @@ app.get('/auth/google/callback',
   //   res.status(200).send(message)
   // });
 
-   
-     res.redirect('/success');
-    
+  //  res.status(200).send( {user: userProfile,token :token
+  //  });
+
+     res.redirect(`http://localhost:3000/GoogleLogin?token=${token}`);
+    // 
     
   });
   
@@ -97,7 +100,7 @@ app.get('/auth/google/callback',
 app.get('/inbox', (req,res)=>{
   const email = userProfile._json.email
   gmailService.readInboxInfo(email,token).then(message=>{
-    res.status(200).send(message)
+    res.status(200).send({message:message})
   });
 })
 
