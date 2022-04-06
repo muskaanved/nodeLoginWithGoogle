@@ -51,8 +51,7 @@ class GmailAPI {
 readInboxInfo = async (gmail , accessToken) => {
   var message = [];
   const MessageIds = await this.readMessages(gmail,accessToken);
-  console.log("===",MessageIds)
-    for(var i=0 ; i < 3 ; i++){
+   for(var i=0 ; i < 3 ; i++){
       message.push(await this.getMessage(gmail,MessageIds[i].id,accessToken));
      
     }
