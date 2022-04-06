@@ -48,19 +48,28 @@ class GmailAPI {
   };
 
 
-readInboxInfo = async (gmail , accessToken) => {
+readInboxInfo = async (gmail , accessToken ,numberOfEmail) => {
   var message = [];
   const MessageIds = await this.readMessages(gmail,accessToken);
-   for(var i=0 ; i < 3 ; i++){
-      message.push(await this.getMessage(gmail,MessageIds[i].id,accessToken));
+  if(MessageIds.length < numberOfEmail){
+    message.push({
+      numberOfEmail : numberOfEmail,
+      message:" message is not there in your inbox"
+    })
+  }else{
+    for(var i=0 ; i < numberOfEmail ; i++){
+       message.push(await this.getMessage(gmail,MessageIds[i].id,accessToken));
+      
+     }
+     // const message = await this.getMessage(threadId ,accessToken);
+     // console.log(message.payload);
+     // const encodedMessage = await message.payload["parts"][0].body.data;
      
-    }
-    // const message = await this.getMessage(threadId ,accessToken);
-    // console.log(message.payload);
-    // const encodedMessage = await message.payload["parts"][0].body.data;
-    
-    // const decodedStr = Buffer.from(encodedMessage, "base64").toString("ascii");
-    return message;
+     // const decodedStr = Buffer.from(encodedMessage, "base64").toString("ascii");
+     
+  }
+  return message;
+ 
 };
 
 
