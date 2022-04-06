@@ -93,7 +93,7 @@ refresh.use(strategy);
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/error' }),
   function(req, res) {
-   //console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken,id_token:id_token })
+   console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken,id_token:id_token })
    res.redirect(`http://localhost:3000/GoogleLogin?token=${id_token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
 });
 
@@ -115,11 +115,16 @@ app.get('/verify',(req, res) =>{
   var token = req.headers.token
   var decoded = jwt.decode(token);
   var exp = decoded.exp;
+  // exp in millis
  if (exp < Date.now() / 1000) {
     res.status(400).send({status:false,message:"token expired"})
   }else{
     res.status(200).send({status:true , message:"token valid"})
   }
+});
+
+app.get('/getRefreshToken',(req, res) =>{
+    res.status(200).send({refreshToken:refreshToken})
 });
 
 
