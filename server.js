@@ -1,16 +1,18 @@
 var express =  require('express');
-var cors = require('cors');
+var cors = require('cors')
 require('dotenv').config()
 const session = require('express-session');
 const {google} = require('googleapis');
 const gmailService = require('./services/GmailApi')
-
 const passport = require('passport');
 const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const refresh = require('passport-oauth2-refresh')
+var jwt = require('jsonwebtoken');
+var morgan = require('morgan')
 
 var app = express();
 app.use(cors())
+app.use(morgan('combined'))
 app.use(session({
     resave: false,
     saveUninitialized: true,
@@ -37,7 +39,10 @@ app.listen(port,()=>{
 var userProfile;
 var token ;
 var refreshToken ;
-       
+var expires_in ;
+var id_token ;
+
+
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -66,11 +71,12 @@ var strategy = new GoogleStrategy({
   clientSecret: GOOGLE_CLIENT_SECRET,
   callbackURL: "/auth/google/callback"
 },
-function(accessToken, refresh_token, profile, done) {
+function(accessToken, refresh_token,params, profile, done) {
     token = accessToken
     userProfile=profile;
     refreshToken=refresh_token
-    return done(null, userProfile , token,refreshToken);
+    id_token =params.id_token
+    return done(null, userProfile ,token,refreshToken,id_token);
 },
 
 );
@@ -82,19 +88,14 @@ refresh.use(strategy);
    accessType: 'offline',
    prompt: 'consent',
 
-}
-  
- 
-));
+}));
  
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/error' }),
   function(req, res) {
-   console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken })
-   res.redirect(`http://localhost:3000/GoogleLogin?token=${token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
-    
-    
-  });
+   console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken,id_token:id_token })
+   res.redirect(`http://localhost:3000/GoogleLogin?token=${id_token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
+});
 
 app.get('/inbox', (req,res)=>{
   var numberOfEmail = req.headers.numberofemail
@@ -110,10 +111,18 @@ app.get('/inbox', (req,res)=>{
  
 })
 
-  app.get('/logout', function(req, res) {
-    req.session.destroy(null);
-    res.clearCookie(this.cookie, { path: '/' });
-    res.redirect('/');
+app.get('/verify',(req, res) =>{
+  var token = req.headers.token
+  var decoded = jwt.decode(token);
+  var exp = decoded.exp;
+  // exp in millis
+ if (exp < Date.now() / 1000) {
+    res.status(400).send({status:false,message:"token expired"})
+  }else{
+    res.status(200).send({status:true , message:"token valid"})
+  }
 });
 
-
+app.get('/getRefreshToken',(req, res) =>{
+    res.status(200).send({refreshToken:refreshToken})
+});
