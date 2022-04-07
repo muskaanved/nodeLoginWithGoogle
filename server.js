@@ -103,7 +103,7 @@ app.get('/auth/google/callback',
   passport.authenticate('google', { failureRedirect: '/error' }),
   function(req, res) {
    console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken,id_token:id_token })
-   res.redirect(`http://localhost:3000/GoogleLogin?token=${id_token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
+   res.redirect(`${process.env.REACT_APP_URL}/GoogleLogin?token=${id_token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
 });
 
 app.get('/inbox', (req,res)=>{
