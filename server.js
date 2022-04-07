@@ -42,7 +42,7 @@ app.listen(port,()=>{
 
 
 
-
+/* Changes for Git */
 /*  PASSPORT SETUP  */
 
 var userProfile;
@@ -97,7 +97,7 @@ refresh.use(strategy);
    accessType: 'offline',
    prompt: 'consent',
 
-}));
+}));       
  
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/error' }),
