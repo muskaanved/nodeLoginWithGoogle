@@ -11,7 +11,16 @@ var jwt = require('jsonwebtoken');
 var morgan = require('morgan')
 
 var app = express();
-app.use(cors())
+
+const corsOpts = {
+  origin: '*',
+
+  methods: [
+    'GET',
+    'POST',
+  ]
+};
+app.use(cors(corsOpts))
 app.use(morgan('combined'))
 app.use(session({
     resave: false,
