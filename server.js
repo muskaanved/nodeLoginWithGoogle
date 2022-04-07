@@ -11,7 +11,16 @@ var jwt = require('jsonwebtoken');
 var morgan = require('morgan')
 
 var app = express();
-app.use(cors())
+
+const corsOpts = {
+  origin: '*',
+
+  methods: [
+    'GET',
+    'POST',
+  ]
+};
+app.use(cors(corsOpts))
 app.use(morgan('combined'))
 app.use(session({
     resave: false,
@@ -33,7 +42,7 @@ app.listen(port,()=>{
 
 
 
-
+/* Changes for Git */
 /*  PASSPORT SETUP  */
 
 var userProfile;
@@ -88,13 +97,13 @@ refresh.use(strategy);
    accessType: 'offline',
    prompt: 'consent',
 
-}));
+}));       
  
 app.get('/auth/google/callback', 
   passport.authenticate('google', { failureRedirect: '/error' }),
   function(req, res) {
    console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken,id_token:id_token })
-   res.redirect(`http://localhost:3000/GoogleLogin?token=${id_token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
+   res.redirect(`${process.env.REACT_APP_URL}/GoogleLogin?token=${id_token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
 });
 
 app.get('/inbox', (req,res)=>{
