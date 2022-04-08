@@ -39,6 +39,7 @@ app.listen(port,()=>{
 
 
 
+
 /*  PASSPORT SETUP  */
 
 var userProfile;
@@ -147,7 +148,3 @@ app.get('/verify',(req, res) =>{
 app.get('/getRefreshToken',(req, res) =>{
     res.status(200).send({refreshToken:refreshToken})
 });
-
-
-
-
