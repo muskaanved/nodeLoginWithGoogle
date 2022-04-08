@@ -9,12 +9,9 @@ const GoogleStrategy = require('passport-google-oauth').OAuth2Strategy;
 const refresh = require('passport-oauth2-refresh')
 var jwt = require('jsonwebtoken');
 var morgan = require('morgan')
-
 var app = express();
-
 const corsOpts = {
   origin: '*',
-
   methods: [
     'GET',
     'POST',
@@ -39,7 +36,6 @@ app.get('/',(req,res)=>{
 app.listen(port,()=>{
     console.log(`server is ready to port on ${port}`)
 })
-
 
 
 
@@ -85,24 +81,40 @@ function(accessToken, refresh_token,params, profile, done) {
     userProfile=profile;
     refreshToken=refresh_token
     id_token =params.id_token
-    return done(null, userProfile ,token,refreshToken,id_token);
+   return done(null, userProfile ,token,refreshToken,id_token);
 },
 
 );
 passport.use(strategy)
 refresh.use(strategy);
 
- app.get('/auth/google',passport.authenticate('google',
-  { scope : ['profile', 'email','https://mail.google.com/',],
-   accessType: 'offline',
-   prompt: 'consent',
+scopes=['profile', 'email','https://mail.google.com/']
 
-}));
- 
+const oauth2Client = new google.auth.OAuth2(
+  GOOGLE_CLIENT_ID,
+  GOOGLE_CLIENT_SECRET,
+  "http://localhost:3001/auth/google/callback"
+);
+
+const url = oauth2Client.generateAuthUrl({
+  access_type: 'offline',
+  scope: scopes
+});
+
+
+
+app.get('/auth/google',(req,res)=>{
+  res.status(200).send({url:url})
+});
+
+
 app.get('/auth/google/callback', 
-  passport.authenticate('google', { failureRedirect: '/error' }),
+  passport.authenticate('google', { failureRedirect: '/error',scope :scopes ,
+  accessType: 'offline',
+ prompt: 'consent', }),
   function(req, res) {
-   console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken,id_token:id_token })
+    
+  // console.log("...",{user: userProfile,token :token ,refreshToken:refreshToken,id_token:id_token })
    res.redirect(`http://localhost:3000/GoogleLogin?token=${id_token}&refreshToken=${refreshToken}&user=${userProfile._json.email}`);
 });
 
